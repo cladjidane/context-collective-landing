@@ -2,7 +2,6 @@ import { Hero } from "@/components/sections/hero";
 import { Manifesto } from "@/components/sections/manifesto";
 import { Events } from "@/components/sections/events";
 import { News } from "@/components/sections/news";
-import { Voices } from "@/components/sections/voices";
 import { Formats } from "@/components/sections/formats";
 import { Join } from "@/components/sections/join";
 import { getLatestEvents, getPastEvents } from "@/lib/eventlite";
@@ -21,7 +20,6 @@ export default async function Home() {
       <Manifesto />
       <Events upcomingEvents={upcomingEvents} pastEvents={pastEvents} />
       <News articles={latestNews} />
-      <Voices />
       <Formats />
       <Join />
     </>
