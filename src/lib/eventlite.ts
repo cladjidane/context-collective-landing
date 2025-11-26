@@ -43,7 +43,7 @@ export async function getLatestEvents(limit = 3, city?: string): Promise<Event[]
     }
 
     const res = await fetch(url.toString(), {
-      next: { revalidate: 3600 }, // Revalidate every hour
+      next: { revalidate: 60 }, // Revalidate every minute
     });
 
     if (!res.ok) {
