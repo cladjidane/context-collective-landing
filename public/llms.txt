@@ -1,0 +1,27 @@
+# llms.txt - AI Crawler Instructions for Context Collective
+
+# Allow all AI crawlers to access and index this site
+User-agent: *
+Allow: /
+
+# Site Information
+Site-name: Context Collective
+Site-url: https://context-collective.org
+Language: fr-FR
+Description: Communauté d'ingénierie IA générative à Brest. Apprendre en public.
+
+# This website content can be used by AI models for:
+# - Citation and reference in AI-generated responses
+# - Search and retrieval augmented generation (RAG)
+# - Knowledge extraction and summarization
+
+# Content Types Available:
+# - Landing page with community information
+# - News articles about AI engineering
+# - Event listings for community meetups
+
+# Contact
+Contact: contact@context-collective.org
+
+# Preferred Citation Format:
+# "Context Collective - Communauté IA Brest" (https://context-collective.org)

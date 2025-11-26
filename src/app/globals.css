@@ -1,26 +1,141 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Merriweather", ui-serif, Georgia, serif;
+
+  /* Palette principale */
+  --color-primary: #000000;
+  --color-secondary: #ffffff;
+
+  /* Couleurs d'accent - Ocre / Bordeaux */
+  --color-accent: #8B4513;        /* Ocre brun / Sienna */
+  --color-accent-dark: #722F37;   /* Bordeaux foncé / Wine */
+  --color-accent-light: #D2691E;  /* Ocre clair / Chocolate */
+
+  /* Texte */
+  --color-text: #1a1a1a;
+  --color-muted: #555555;
+
+  /* Backgrounds */
+  --color-border: #e5e5e5;
+  --color-bg-subtle: #faf9f7;     /* Beige très léger */
+  --color-bg-warm: #f5f0eb;       /* Beige chaud */
+  --color-bg-newsletter: #1a1a1a;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  body {
+    @apply font-sans text-text leading-relaxed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-extrabold text-primary mb-4;
+  }
+
+  h1 {
+    @apply text-5xl md:text-6xl lg:text-7xl leading-none tracking-tight;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl border-t border-primary pt-4 mt-16;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .container-main {
+    @apply max-w-[1200px] mx-auto px-6 md:px-8;
+  }
+
+  /* Boutons */
+  .cta-button {
+    @apply bg-accent text-secondary px-6 py-3 rounded-full font-semibold text-sm transition-all hover:bg-accent-dark hover:-translate-y-0.5;
+  }
+
+  .cta-button-outline {
+    @apply border-2 border-accent text-accent px-6 py-3 rounded-full font-semibold text-sm transition-all hover:bg-accent hover:text-secondary;
+  }
+
+  /* Titres de section */
+  .section-title {
+    @apply text-4xl md:text-5xl leading-none mb-8;
+  }
+
+  .lead {
+    @apply text-xl md:text-2xl font-semibold mb-8 text-text;
+  }
+
+  /* Cards */
+  .community-card {
+    @apply bg-white border border-border p-6 md:p-8 rounded-xl flex flex-col justify-between min-h-[280px] transition-all hover:-translate-y-1 hover:shadow-lg hover:border-accent/30;
+  }
+
+  .card-tag {
+    @apply inline-block bg-accent text-secondary px-3 py-1 rounded text-xs font-semibold mb-4;
+  }
+
+  .card-tag-outline {
+    @apply inline-block border border-accent text-accent px-3 py-1 rounded text-xs font-semibold mb-4;
+  }
+
+  /* Voices */
+  .voice-card blockquote {
+    @apply font-serif text-lg md:text-xl italic mb-6 leading-snug;
+  }
+
+  .voice-author {
+    @apply font-sans font-semibold text-sm opacity-70;
+  }
+
+  /* Links */
+  .link-item {
+    @apply flex justify-between items-center py-5 border-b border-border text-primary text-lg font-semibold transition-all hover:pl-4 hover:border-accent no-underline;
+  }
+
+  .link-desc {
+    @apply font-normal text-muted text-base;
+  }
+
+  .link-arrow {
+    @apply no-underline text-accent font-semibold border-b border-transparent transition-colors hover:border-accent;
+  }
+
+  /* Newsletter */
+  .newsletter-signup {
+    @apply bg-bg-newsletter text-secondary p-8 md:p-16 text-center rounded-2xl mt-16;
+  }
+
+  /* Read more */
+  .read-more-link {
+    @apply bg-transparent border-none text-accent font-semibold cursor-pointer p-0 mt-4 underline decoration-accent/50 underline-offset-4 hover:decoration-accent transition-all;
+  }
+
+  /* Tags */
+  .tag {
+    @apply inline-block border border-accent text-accent px-3 py-1 rounded-full text-xs uppercase font-semibold mb-4;
+  }
+
+  /* Event card specifics */
+  .event-card {
+    @apply bg-white border border-border p-6 rounded-xl transition-all hover:border-accent/50 hover:shadow-md;
+  }
+}
+
+@layer utilities {
+  .fade-up {
+    @apply opacity-0 translate-y-5 transition-all duration-500;
+  }
+
+  .fade-up.visible {
+    @apply opacity-100 translate-y-0;
+  }
+
+  /* Gradient text effect */
+  .text-gradient {
+    @apply bg-gradient-to-r from-accent to-accent-dark bg-clip-text text-transparent;
+  }
 }
