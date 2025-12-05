@@ -4,6 +4,7 @@ import { Events } from "@/components/sections/events";
 import { News } from "@/components/sections/news";
 import { Formats } from "@/components/sections/formats";
 import { Join } from "@/components/sections/join";
+import { DiscordSection } from "@/components/sections/discord";
 import { getLatestEvents, getPastEvents } from "@/lib/eventlite";
 import { getLatestNews } from "@/lib/mdx";
 
@@ -21,6 +22,7 @@ export default async function Home() {
       <Events upcomingEvents={upcomingEvents} pastEvents={pastEvents} />
       <News articles={latestNews} />
       <Formats />
+      <DiscordSection />
       <Join />
     </>
   );

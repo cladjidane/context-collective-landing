@@ -56,8 +56,8 @@ export function OrganizationSchema({
     description,
     logo: `${BASE_URL}/logo.svg`,
     sameAs: [
-      "https://discord.gg/context-collective",
-      "https://youtube.com/@context-collective",
+      "https://discord.gg/WaRNpDSU",
+      "https://www.youtube.com/@ContextCollectiveBrest",
     ],
     address: {
       "@type": "PostalAddress",

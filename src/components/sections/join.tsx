@@ -5,12 +5,12 @@ import { ArrowRight } from "lucide-react";
 
 const links = [
   {
-    href: "https://discord.gg/context-collective",
+    href: "https://discord.gg/WaRNpDSU",
     label: "Discord",
     description: "La communauté au quotidien",
   },
   {
-    href: "https://youtube.com/@context-collective",
+    href: "https://www.youtube.com/@ContextCollectiveBrest",
     label: "YouTube",
     description: "Replays et Lives",
   },
