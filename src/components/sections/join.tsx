@@ -20,7 +20,7 @@ const links = [
     description: "Wiki et ressources",
   },
   {
-    href: "#",
+    href: "https://luma.com/calendar/manage/cal-WMLiRLi0qm1lQFz",
     label: "Luma",
     description: "Agenda des événements",
   },
