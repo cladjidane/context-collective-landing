@@ -40,12 +40,12 @@ export function SeriesNavigation({
                             <div
                                 key={article.slug}
                                 className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${isCurrent
-                                        ? "bg-primary/10 text-primary"
-                                        : "text-muted hover:bg-white/5 hover:text-white"
+                                    ? "bg-primary/10 text-primary"
+                                    : "text-muted hover:bg-white/5 hover:text-white"
                                     }`}
                             >
                                 <span
-                                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${isCurrent ? "bg-primary text-black" : "bg-white/10"
+                                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${isCurrent ? "bg-primary text-white" : "bg-white/10"
                                         }`}
                                 >
                                     {index + 1}

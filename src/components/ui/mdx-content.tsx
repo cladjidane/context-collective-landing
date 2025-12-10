@@ -1,6 +1,7 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface MDXContentProps {
   content: string;
@@ -10,6 +11,7 @@ export function MDXContent({ content }: MDXContentProps) {
   return (
     <div className="prose prose-lg max-w-none prose-headings:text-primary prose-a:text-accent prose-a:no-underline hover:prose-a:underline">
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         components={{
           h1: ({ children }) => (
             <h1 className="text-3xl font-extrabold mt-8 mb-4">{children}</h1>
@@ -41,24 +43,52 @@ export function MDXContent({ content }: MDXContentProps) {
             </a>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-accent pl-4 italic my-4 text-muted">
+            <blockquote className="border-l-4 border-accent pl-4 italic my-4 text-muted bg-bg-subtle p-4 rounded-r-lg">
               {children}
             </blockquote>
           ),
-          code: ({ children }) => (
-            <code className="bg-bg-subtle px-2 py-1 rounded text-sm font-mono">
-              {children}
-            </code>
-          ),
+          code: ({ children, className }) => {
+            const isBlock = className?.includes("language-");
+            return isBlock ? (
+              <code className="text-sm font-mono text-gray-200">{children}</code>
+            ) : (
+              <code className="bg-bg-subtle px-1.5 py-0.5 rounded text-sm font-mono text-accent-dark font-semibold">
+                {children}
+              </code>
+            );
+          },
           pre: ({ children }) => (
-            <pre className="bg-primary text-secondary p-4 rounded-lg overflow-x-auto my-4">
+            <pre className="bg-[#1a1a1a] text-gray-200 p-4 rounded-lg overflow-x-auto my-6 border border-white/10 shadow-inner">
               {children}
             </pre>
           ),
-          strong: ({ children }) => (
-            <strong className="font-bold">{children}</strong>
+          hr: () => <hr className="hidden" />,
+          table: ({ children }) => (
+            <div className="overflow-x-auto my-8">
+              <table className="min-w-full divide-y divide-border border border-border rounded-lg overflow-hidden">
+                {children}
+              </table>
+            </div>
           ),
-          em: ({ children }) => <em className="italic">{children}</em>,
+          thead: ({ children }) => <thead className="bg-bg-subtle">{children}</thead>,
+          tbody: ({ children }) => (
+            <tbody className="divide-y divide-border bg-white">{children}</tbody>
+          ),
+          tr: ({ children }) => <tr className="hover:bg-bg-subtle/50 transition-colors">{children}</tr>,
+          th: ({ children }) => (
+            <th className="px-6 py-3 text-left text-xs font-bold text-muted uppercase tracking-wider">
+              {children}
+            </th>
+          ),
+          td: ({ children }) => (
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-text">
+              {children}
+            </td>
+          ),
+          strong: ({ children }) => (
+            <strong className="font-bold text-primary">{children}</strong>
+          ),
+          em: ({ children }) => <em className="italic text-muted">{children}</em>,
         }}
       >
         {content}
