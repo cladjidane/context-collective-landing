@@ -1,0 +1,411 @@
+---
+title: "Les Skills : personnaliser Claude sans magie"
+date: "2024-05-22"
+excerpt: "Comment ajouter des compétences à Claude sans fine-tuning ? Découvrez le système de Skills, simple et puissant."
+author: "Context Collective"
+series: "Comprendre Claude"
+order: 3
+coverImage: "/images/news/claude-part3.jpg"
+eventId: "test-event-id"
+---
+
+# Les Skills : personnaliser Claude sans magie
+
+*Troisième et dernier article d'une série sur le fonctionnement interne de Claude*
+
+---
+
+## Introduction
+
+On a vu comment Claude fonctionne : un modèle stateless orchestré par du code côté client. Maintenant, comment le personnaliser ?
+
+C'est là qu'interviennent les Skills. Un système élégant qui permet d'ajouter des compétences à Claude — sans fine-tuning, sans complexité, juste avec du texte structuré.
+
+Cet article démystifie les Skills, explique comment les créer, et répond à la question : peut-on en charger 50 sans que ça parte en vrille ?
+
+---
+
+## C'est quoi une Skill ?
+
+Une Skill, c'est un dossier contenant des instructions et des ressources que Claude peut utiliser.
+
+Concrètement :
+
+```
+ma-skill/
+├── SKILL.md              # Obligatoire : instructions principales
+├── scripts/              # Optionnel : code exécutable
+├── references/           # Optionnel : documentation détaillée
+└── assets/               # Optionnel : templates, images, etc.
+```
+
+C'est tout. Pas de format propriétaire, pas de compilation, pas de magie. Du Markdown et des fichiers.
+
+### Le fichier SKILL.md
+
+C'est le cœur de la Skill. Deux parties :
+
+**1. Frontmatter YAML** (métadonnées) :
+```yaml
+---
+name: email-writer
+description: "Rédaction d'emails professionnels. Utiliser quand 
+              l'utilisateur demande de l'aide pour écrire un email,
+              rédiger une réponse, ou améliorer un message."
+---
+```
+
+**2. Corps Markdown** (instructions) :
+```markdown
+# Email Writer
+
+## Workflow
+1. Identifier le contexte (formel/informel)
+2. Demander les points clés si non fournis
+3. Proposer une structure avant de rédiger
+...
+```
+
+---
+
+## Comment Claude charge les Skills
+
+Le chargement est progressif, en 3 niveaux :
+
+### Niveau 1 : Métadonnées (toujours chargées)
+
+Au démarrage, Claude reçoit la liste de toutes les Skills disponibles :
+
+```xml
+<available_skills>
+  <skill>
+    <name>docx</name>
+    <description>Création de documents Word...</description>
+    <location>/mnt/skills/public/docx/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>pdf</name>
+    <description>Manipulation de PDF...</description>
+    <location>/mnt/skills/public/pdf/SKILL.md</location>
+  </skill>
+</available_skills>
+```
+
+~100 tokens par Skill. Juste les noms et descriptions.
+
+### Niveau 2 : SKILL.md complet (si trigger)
+
+Quand ta demande correspond à une description, Claude lit le fichier SKILL.md complet avec l'outil `view`.
+
+C'est le modèle lui-même qui décide de le faire. Le prompt système lui dit :
+
+> "Commence chaque tâche en lisant le SKILL.md approprié"
+
+### Niveau 3 : Ressources (à la demande)
+
+Si le SKILL.md référence des scripts ou de la documentation, Claude les charge quand il en a besoin.
+
+```
+Niveau 1: Métadonnées     → Toujours en contexte (~100 tokens/skill)
+Niveau 2: SKILL.md        → Chargé si trigger (~2k tokens)
+Niveau 3: Ressources      → Chargé si besoin (variable)
+```
+
+### Le trigger, c'est la description
+
+Point crucial : Claude décide de charger une Skill en se basant sur la **description** du frontmatter.
+
+Une description mal écrite = une Skill qui ne se déclenche jamais.
+
+```yaml
+# MAUVAIS
+description: "Aide à créer des documents"
+
+# BON
+description: "Création de fichiers .docx Word avec mise en forme 
+              professionnelle. Utiliser pour : nouveaux documents Word,
+              modification de .docx existants, ajout de tableaux/images.
+              NE PAS utiliser pour : PDF, présentations, markdown."
+```
+
+---
+
+## Anatomie d'une Skill bien conçue
+
+Anthropic fournit un "Skill Creator" avec les best practices. Voici les principes clés.
+
+### 1. "Concise is key"
+
+Le contexte est une ressource partagée. Chaque token compte.
+
+```markdown
+# MAUVAIS (verbeux)
+## Introduction
+Cette skill a été créée pour aider les utilisateurs à rédiger 
+des emails professionnels de haute qualité. Elle prend en compte
+de nombreux facteurs importants comme le ton, la structure...
+
+# BON (direct)
+## Workflow
+1. Identifier le ton (formel/informel)
+2. Structurer : objet → contexte → demande → signature
+3. Relire pour concision
+```
+
+### 2. "Claude is already very smart"
+
+N'ajoute que ce que Claude ne sait pas. Pas besoin d'expliquer ce qu'est un email.
+
+### 3. Progressive disclosure
+
+Le SKILL.md donne les grandes lignes. Les détails sont dans des fichiers séparés, chargés à la demande.
+
+```markdown
+## Formats supportés
+- Pour les tableaux complexes, voir [tables.md](references/tables.md)
+- Pour les graphiques, voir [charts.md](references/charts.md)
+```
+
+### 4. Degrés de liberté appropriés
+
+Plus la tâche est fragile, plus les instructions doivent être précises.
+
+| Tâche | Liberté | Format |
+|-------|---------|--------|
+| Rédaction créative | Haute | Guidelines textuelles |
+| Configuration technique | Moyenne | Pseudocode, paramètres |
+| Manipulation de fichiers | Basse | Scripts exacts |
+
+---
+
+## Peut-on charger 50 Skills sans saturation ?
+
+C'est LA question pratique. Réponse : **oui, mais**.
+
+### Le coût en tokens
+
+Faisons le calcul :
+- 50 Skills × ~50 mots de description = ~2500 mots ≈ 3500 tokens
+- Sur une context window de 200k tokens = **1.75%**
+
+En termes de place, c'est négligeable.
+
+### Le vrai problème : la collision de triggers
+
+Le risque n'est pas la place, c'est la confusion.
+
+```
+EXEMPLE DE COLLISION
+────────────────────
+
+Skill A: "Aide à rédiger des emails professionnels"
+Skill B: "Assistant pour toutes les communications écrites"
+Skill C: "Rédaction de documents business et correspondance"
+
+User: "Aide-moi à écrire un email à mon client"
+
+→ Les 3 matchent. Laquelle charger ?
+```
+
+### Observations pratiques
+
+| Nombre de Skills | Comportement |
+|------------------|--------------|
+| 1-10 | Triggers fiables |
+| 10-30 | OK si descriptions distinctes |
+| 30-50 | Hésitations possibles |
+| 50+ | Nécessite des descriptions très précises |
+
+### Stratégies pour gérer 50+ Skills
+
+**1. Descriptions ultra-précises**
+
+Dire non seulement CE QUE fait la Skill, mais aussi QUAND l'utiliser et QUAND NE PAS l'utiliser.
+
+**2. Domaines distincts**
+
+Éviter le chevauchement. Une Skill pour les emails, une autre pour les rapports, pas deux qui font "de la rédaction".
+
+**3. Hiérarchie par catégories**
+
+```
+skills/
+├── communication/
+│   ├── email-formal/
+│   ├── email-casual/
+│   └── slack/
+├── documents/
+│   ├── docx/
+│   ├── pdf/
+│   └── pptx/
+└── code/
+    ├── python/
+    └── javascript/
+```
+
+**4. Meta-skill de routage**
+
+Une Skill "dispatcher" qui aide à choisir quand c'est ambigu.
+
+### La formule du succès
+
+```
+Fiabilité = f(
+    distinction des descriptions,
+    spécificité des cas d'usage,
+    absence de chevauchement
+)
+
+PAS fonction du nombre total
+```
+
+Tu peux avoir 100 Skills qui fonctionnent si chacune a un domaine clair.
+Tu peux avoir 10 Skills qui se marchent dessus si les descriptions sont vagues.
+
+---
+
+## Skills vs GPT Custom : deux philosophies
+
+Comparons avec l'approche d'OpenAI.
+
+### GPT Custom (OpenAI)
+
+```
+┌─────────────────────────────────────┐
+│       GPT "ComptaExpert"            │
+│                                     │
+│   Un assistant spécialisé           │
+│   dans UN domaine                   │
+│                                     │
+│   → Changer de domaine              │
+│     = changer de GPT                │
+│     = perdre le contexte            │
+└─────────────────────────────────────┘
+```
+
+### Skills (Anthropic)
+
+```
+┌─────────────────────────────────────┐
+│       Claude + Skills               │
+│                                     │
+│   UN assistant avec                 │
+│   PLUSIEURS compétences             │
+│                                     │
+│   → Changer de domaine              │
+│     = charger une autre Skill       │
+│     = contexte préservé             │
+└─────────────────────────────────────┘
+```
+
+### Comparaison
+
+| Critère | GPT Custom | Skills |
+|---------|-----------|--------|
+| Philosophie | Spécialiste | Généraliste augmenté |
+| Mémoire entre domaines | ❌ Perdue | ✅ Préservée |
+| Tâches transverses | ❌ Difficile | ✅ Naturel |
+| Création | Interface graphique | Fichiers Markdown |
+| Partage | GPT Store | Fichiers .skill |
+
+### Le cas d'usage révélateur
+
+*"Prépare un contrat de prestation avec les aspects juridiques ET techniques"*
+
+**Avec GPTs** : ouvrir GPT Juridique, copier, ouvrir GPT Dev, copier, fusionner manuellement.
+
+**Avec Skills** : demander à Claude, il charge les deux Skills, produit un document cohérent.
+
+### Peut-on convertir un GPT en Skill ?
+
+Oui, le mapping est direct :
+
+```
+GPT Custom                 →    Skill
+───────────                     ─────
+System prompt              →    SKILL.md (corps)
+Knowledge files            →    references/
+Actions (API)              →    scripts/ + MCP
+Logo, nom                  →    Frontmatter
+```
+
+La différence est dans l'usage, pas dans la structure.
+
+---
+
+## Créer sa première Skill
+
+### Étape 1 : Identifier le besoin
+
+Qu'est-ce que tu fais souvent qui pourrait être structuré ?
+- Un type de document récurrent
+- Un workflow technique
+- Des règles métier spécifiques
+
+### Étape 2 : Structurer le SKILL.md
+
+```yaml
+---
+name: mon-workflow
+description: "Description précise. Utiliser quand X. Ne pas utiliser pour Y."
+---
+
+# Mon Workflow
+
+## Contexte
+[Ce que Claude doit savoir]
+
+## Étapes
+1. [Première étape]
+2. [Deuxième étape]
+...
+
+## Exemples
+[Un ou deux exemples concrets]
+```
+
+### Étape 3 : Ajouter des ressources si nécessaire
+
+- `scripts/` : code réutilisable
+- `references/` : documentation détaillée
+- `assets/` : templates, images
+
+### Étape 4 : Tester et itérer
+
+Lance des demandes, observe si la Skill se déclenche, ajuste la description.
+
+---
+
+## En résumé
+
+**Une Skill, c'est du texte structuré.** Un fichier SKILL.md avec des instructions, optionnellement accompagné de ressources.
+
+**Le chargement est progressif.** Métadonnées toujours présentes, SKILL.md chargé si trigger, ressources à la demande.
+
+**Le trigger, c'est la description.** Bien l'écrire est crucial.
+
+**50+ Skills, c'est possible** si les domaines sont distincts et les descriptions précises.
+
+**Skills ≠ GPT Custom.** Deux philosophies : spécialiste unique vs généraliste augmenté.
+
+**Pas de magie.** Juste de l'ingénierie de prompt, bien structurée.
+
+---
+
+## Conclusion de la série
+
+En trois articles, on a démystifié Claude :
+
+1. **Modèles vs Outils** : le cerveau est le même, ce sont les interfaces qui diffèrent
+2. **Mécanique agentique** : une boucle côté client, un modèle stateless côté serveur
+3. **Skills** : du texte injecté dans le prompt, chargé progressivement
+
+Pas de magie. Pas d'intelligence artificielle "consciente". Juste de l'ingénierie logicielle sophistiquée autour d'un modèle de langage très capable.
+
+Comprendre ces mécanismes, c'est pouvoir les exploiter. Créer ses propres Skills, optimiser ses prompts, utiliser le bon outil pour la bonne tâche.
+
+L'IA générative n'est pas magique. Elle est puissante — et maintenant, tu sais comment elle fonctionne.
+
+---
+
+*Cette série d'articles est basée sur une présentation donnée lors d'un événement sur Claude et l'IA générative.*

@@ -1,0 +1,153 @@
+---
+title: "Claude sous le capot : modèles, outils et la confusion à éviter"
+date: "2024-05-18"
+excerpt: "Modèles, outils, Claude Code, Desktop... Démêlons les concepts pour bien comprendre l'écosystème Anthropic."
+author: "Context Collective"
+series: "Comprendre Claude"
+order: 1
+coverImage: "/images/news/claude-part1.jpg"
+eventId: "test-event-id"
+---
+
+# Claude sous le capot : modèles, outils et la confusion à éviter
+
+*Premier article d'une série de 3 sur le fonctionnement interne de Claude*
+
+---
+
+## Introduction
+
+Quand on parle de "Claude", on mélange souvent plusieurs choses. L'interface web, l'application desktop, Claude Code, les modèles Haiku, Sonnet, Opus... Avant d'aller plus loin dans la compréhension de ces outils, il faut démêler tout ça.
+
+Cet article pose les bases. Les deux suivants plongeront dans la mécanique agentique et le système de Skills.
+
+---
+
+## Modèles vs Outils : la distinction fondamentale
+
+### Les modèles (le cerveau)
+
+Un modèle de langage (LLM), c'est le "cerveau" — un réseau de neurones entraîné sur des quantités massives de texte, capable de générer des réponses cohérentes à partir d'une entrée.
+
+Chez Anthropic, les modèles s'appellent :
+- **Claude Haiku** : rapide, économique, pour les tâches simples
+- **Claude Sonnet** : équilibré, le plus utilisé
+- **Claude Opus** : le plus puissant, pour les tâches complexes
+
+Ces modèles sont hébergés sur les serveurs d'Anthropic. Quand tu utilises Claude, tes requêtes sont envoyées à ces serveurs, traitées par le modèle, et la réponse te revient.
+
+### Les outils (le véhicule)
+
+Les outils, ce sont les interfaces qui te permettent d'accéder au modèle :
+- **Claude.ai** (interface web)
+- **Claude Desktop** (application macOS/Windows)
+- **Claude Code** (CLI pour développeurs)
+- **L'API** (pour intégration dans tes propres apps)
+
+Tous ces outils utilisent les mêmes modèles. La différence, c'est ce qu'ils ajoutent autour.
+
+### Analogie
+
+Pense à une voiture électrique. Le moteur (le modèle) peut être identique entre une berline et un SUV. Mais l'expérience de conduite, les fonctionnalités, l'habitacle (les outils) sont différents.
+
+Claude Desktop et Claude Code, c'est le même moteur dans deux carrosseries différentes.
+
+---
+
+## Claude Desktop vs Claude Code : quelle différence ?
+
+Si c'est le même modèle, pourquoi deux outils distincts ? Trois différences fondamentales.
+
+### 1. Le prompt système
+
+Le prompt système, c'est le texte invisible injecté au début de chaque conversation. Il définit la personnalité, les règles, les capacités.
+
+**Claude Desktop/Web** → prompt orienté "assistant polyvalent" :
+- Aide à la rédaction, analyse, recherche
+- Ton prudent, éthique, pédagogue
+- Demande souvent confirmation avant d'agir
+
+**Claude Code** → prompt orienté "ingénieur senior" :
+- Lecture de code, architecture, debugging
+- Encourage l'autonomie et l'action
+- Agit d'abord, pose des questions ensuite
+
+### 2. Les outils disponibles
+
+Chaque interface expose des outils (tools) différents au modèle :
+
+| Outil | Desktop/Web | Claude Code |
+|-------|-------------|-------------|
+| Lire des fichiers uploadés | ✅ | — |
+| Lire le filesystem local | ❌ | ✅ |
+| Écrire/modifier des fichiers | ❌ | ✅ |
+| Exécuter du bash | ❌ | ✅ |
+| Recherche web | ✅ | ❌ (par défaut) |
+| Créer des artifacts | ✅ | ✅ |
+
+### 3. L'environnement d'exécution
+
+**Desktop/Web** : sandboxé, sécurisé. Tes fichiers sont uploadés sur les serveurs Anthropic, traités, puis supprimés. Aucun accès à ta machine.
+
+**Claude Code** : tourne en local. Le CLI a accès à ton projet, ton terminal, ton filesystem. D'où le système de permissions pour autoriser certaines actions.
+
+### Analogie
+
+Imagine un consultant très compétent :
+- **Desktop** = tu l'embauches dans un cabinet. Il analyse les documents que tu lui envoies, mais n'a pas accès à tes bureaux.
+- **Code** = tu l'embauches en régie dans tes locaux. Il a les clés, peut ouvrir les tiroirs, modifier les fichiers.
+
+Même personne, contexte différent.
+
+---
+
+## Et la concurrence ?
+
+Le même schéma s'applique partout :
+
+| Entreprise | Modèles | Outils |
+|------------|---------|--------|
+| Anthropic | Haiku, Sonnet, Opus | Claude.ai, Desktop, Code, API |
+| OpenAI | GPT-4, GPT-4o, o1 | ChatGPT, API, Codex |
+| Google | Gemini Pro, Ultra | Gemini, AI Studio, API |
+
+Chaque entreprise a ses modèles (le cerveau) et ses outils (les interfaces). La logique est identique.
+
+---
+
+## Le point clé à retenir
+
+**Le modèle seul ne fait rien d'utile.**
+
+Un LLM, c'est une fonction : texte en entrée → texte en sortie. C'est tout.
+
+La "magie" — la capacité à lire des fichiers, exécuter du code, chercher sur le web, maintenir une conversation cohérente — vient de l'orchestration autour du modèle.
+
+C'est cette orchestration qu'on appelle "système agentique", et c'est le sujet du prochain article.
+
+---
+
+## En résumé
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                                                             │
+│   MODÈLES (le cerveau)        OUTILS (le véhicule)         │
+│   ────────────────────        ────────────────────         │
+│                                                             │
+│   • Haiku                     • Claude.ai (web)            │
+│   • Sonnet                    • Claude Desktop             │
+│   • Opus                      • Claude Code                │
+│                               • API                        │
+│                                                             │
+│   Hébergés chez Anthropic     Interfaces différentes       │
+│   Même intelligence           Capacités différentes        │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Dans le prochain article** : on plonge dans la mécanique agentique. Comment Claude "réfléchit", comment il décide d'utiliser un outil, où se passe la fameuse "boucle" dont tout le monde parle.
+
+---
+
+*Cet article fait partie d'une série basée sur une présentation donnée lors d'un événement sur Claude et l'IA générative.*

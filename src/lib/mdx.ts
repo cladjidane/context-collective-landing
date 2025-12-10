@@ -31,6 +31,8 @@ export function getAllNews(): NewsArticleMeta[] {
         author: data.author || "Context Collective",
         coverImage: data.coverImage,
         eventId: data.eventId,
+        series: data.series,
+        order: data.order,
       };
     });
 
@@ -57,8 +59,17 @@ export function getNewsBySlug(slug: string): NewsArticle | null {
       coverImage: data.coverImage,
       content,
       eventId: data.eventId,
+      series: data.series,
+      order: data.order,
     };
   } catch {
     return null;
   }
+}
+
+export function getSeriesArticles(seriesName: string): NewsArticleMeta[] {
+  const allNews = getAllNews();
+  return allNews
+    .filter((article) => article.series === seriesName)
+    .sort((a, b) => ((a.order || 0) > (b.order || 0) ? 1 : -1));
 }

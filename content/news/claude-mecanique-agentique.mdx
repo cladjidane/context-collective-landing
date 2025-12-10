@@ -1,0 +1,349 @@
+---
+title: "La mécanique agentique : comment Claude réfléchit et agit"
+date: "2024-05-20"
+excerpt: "Le LLM est amnésique. Découvrez comment la boucle agentique locale permet à Claude Code d'être intelligent et autonome."
+author: "Context Collective"
+series: "Comprendre Claude"
+order: 2
+coverImage: "/images/news/claude-part2.jpg"
+eventId: "test-event-id"
+---
+
+# La mécanique agentique : comment Claude réfléchit et agit
+
+*Deuxième article d'une série de 3 sur le fonctionnement interne de Claude*
+
+---
+
+## Introduction
+
+Dans l'article précédent, on a vu que Claude Desktop et Claude Code utilisent le même modèle. La différence, c'est l'orchestration autour.
+
+Cette orchestration, c'est ce qu'on appelle un "système agentique". Un terme un peu pompeux pour décrire quelque chose de finalement assez simple.
+
+Cet article démystifie la mécanique : où ça tourne, comment le modèle décide d'agir, et ce fameux mode "thinking" qu'on voit parfois.
+
+---
+
+## Le LLM est bête et amnésique
+
+Commençons par une vérité qui dérange : le LLM est fondamentalement stupide.
+
+Pas au sens des capacités — il est impressionnant. Mais au sens architectural :
+- **Stateless** : il n'a aucune mémoire entre deux appels
+- **Passif** : il ne fait que répondre, il n'initie rien
+- **Inconscient** : il ne "sait" pas qu'il est dans une conversation
+
+À chaque appel API :
+1. Il reçoit un blob de texte (prompt système + historique + question)
+2. Il génère une réponse
+3. Il oublie tout
+
+Pas de boucle interne. Pas de réflexion persistante. Chaque appel est indépendant.
+
+---
+
+## Où se passe la boucle agentique ?
+
+La réponse courte : **côté client**, pas côté serveur.
+
+### L'architecture réelle
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     TON ORDINATEUR                          │
+│                                                             │
+│   ┌─────────────────────────────────────────────────────┐   │
+│   │              CLAUDE CODE (CLI)                      │   │
+│   │                                                     │   │
+│   │   Orchestrateur  ◄────►  Exécuteur d'outils        │   │
+│   │   (la boucle)            (bash, fs, etc.)          │   │
+│   └─────────────────────────────────────────────────────┘   │
+│                          │                                  │
+│                          │ API call                         │
+│                          ▼                                  │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+                           │
+                           ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   SERVEURS ANTHROPIC                        │
+│                                                             │
+│      LLM : Input → Output (et c'est tout)                  │
+│                                                             │
+│      PAS DE BOUCLE ICI. PAS DE MÉMOIRE.                    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Ce qui se passe côté serveur
+
+Le LLM reçoit du texte, génère du texte, oublie. Point.
+
+Il n'y a pas de "processus de réflexion" qui tourne en continu. Pas de mémoire entre les appels. Juste une fonction mathématique très sophistiquée.
+
+### Ce qui se passe côté client
+
+L'orchestrateur local (Claude Code) gère tout le reste :
+
+**Étape 1 — Préparation**
+- Charge le prompt système
+- Construit le contexte (fichiers, historique)
+- Envoie à l'API
+
+**Étape 2 — Réception**
+- Le LLM répond : soit du texte final, soit une demande d'outil
+
+**Étape 3 — Exécution (si demande d'outil)**
+- L'orchestrateur exécute l'outil localement
+- Récupère le résultat
+
+**Étape 4 — Rebouclage**
+- On renvoie à l'API : contexte + demande + résultat
+- Retour à l'étape 2
+
+**C'est ça la boucle agentique.** Du code classique qui tourne sur ta machine.
+
+### Un exemple concret
+
+Toi : *"Corrige le bug dans utils.py"*
+
+```
+TOUR 1
+───────
+→ Envoi : "Corrige le bug dans utils.py"
+← Réponse : "Je vais lire le fichier" + tool_call: read_file("utils.py")
+
+    [Orchestrateur exécute : lit utils.py]
+
+TOUR 2
+───────
+→ Envoi : [contexte] + [contenu de utils.py]
+← Réponse : "Je vois le bug" + tool_call: write_file("utils.py", ...)
+
+    [Orchestrateur exécute : écrit le fichier]
+
+TOUR 3
+───────
+→ Envoi : [contexte] + "fichier modifié"
+← Réponse : "J'ai corrigé le bug, voici ce que j'ai fait..."
+```
+
+Trois appels API. Trois "réveils" d'un modèle amnésique. C'est le contexte renvoyé à chaque fois qui crée l'illusion de continuité.
+
+### Pourquoi côté client ?
+
+1. **Sécurité** : le LLM n'a pas accès direct à ta machine
+2. **Économie** : des boucles persistantes côté serveur coûteraient une fortune
+3. **Contrôle** : tu peux voir, interrompre, refuser
+4. **Scalabilité** : impossible de maintenir des millions de boucles actives côté serveur
+
+---
+
+## Comment le modèle décide-t-il d'appeler un outil ?
+
+Spoiler : il ne "décide" pas vraiment. Il génère du texte, et parfois ce texte a un format spécial.
+
+### Les tools sont déclarés dans l'appel API
+
+```json
+{
+  "model": "claude-sonnet-4-20250514",
+  "tools": [
+    {
+      "name": "read_file",
+      "description": "Lit le contenu d'un fichier",
+      "input_schema": {
+        "properties": {
+          "path": { "type": "string" }
+        }
+      }
+    }
+  ],
+  "messages": [
+    {"role": "user", "content": "Lis le fichier config.py"}
+  ]
+}
+```
+
+Le modèle "voit" cette liste. Il sait quels outils existent.
+
+### La génération de tool_call
+
+Le LLM est entraîné à produire une sortie structurée quand c'est pertinent :
+
+```json
+{
+  "content": "Je vais lire le fichier config.py.",
+  "tool_calls": [
+    {
+      "name": "read_file",
+      "input": { "path": "config.py" }
+    }
+  ]
+}
+```
+
+C'est juste du texte avec un format particulier. L'orchestrateur détecte ce format et exécute.
+
+### Ce qui se passe vraiment
+
+```
+Entrée : "Lis config.py" + [tools disponibles]
+              │
+              ▼
+      Génération token par token
+              │
+              ▼
+      Probabilités des suites possibles :
+      - "Je vais lire..." + tool_call  → 85%
+      - "Je ne peux pas accéder..."    → 10%
+      - "Peux-tu me montrer..."        → 5%
+              │
+              ▼
+      Sortie : texte + tool_call
+```
+
+Il n'y a pas de "module de décision" séparé. C'est la même génération de texte. Le modèle a appris quand produire le format tool_call.
+
+### Le rôle du prompt système
+
+Le prompt système influence fortement cette propension :
+
+```
+Tu as accès à des outils pour interagir avec le filesystem.
+Utilise les outils plutôt que de demander à l'utilisateur.
+N'hésite pas à explorer le codebase pour comprendre le contexte.
+```
+
+Ce texte augmente la probabilité que le modèle génère des tool_calls plutôt que "je ne peux pas" ou "peux-tu me montrer ?".
+
+---
+
+## Les trois types de "réflexion"
+
+Il y a beaucoup de confusion sur le "thinking". Clarifions.
+
+### 1. Raisonnement implicite (toujours là)
+
+Chaque génération de token implique un "calcul" dans les couches du réseau de neurones. C'est opaque, invisible, c'est la boîte noire.
+
+### 2. Extended thinking (le bloc visible)
+
+Quand activé, le modèle génère d'abord un bloc `<thinking>`, puis sa réponse :
+
+```
+<thinking>
+L'utilisateur veut corriger un bug.
+Je n'ai pas vu le code.
+Je devrais d'abord lire le fichier.
+</thinking>
+
+Je vais examiner le code pour identifier le problème.
+[tool_call: read_file("main.py")]
+```
+
+**Point crucial** : c'est UN SEUL appel API. Le modèle génère tout d'un coup. Pas de boucle.
+
+Pourquoi ça améliore les résultats ? Le modèle verbalise son raisonnement. En "posant" ses idées par écrit, il structure mieux sa réflexion avant la réponse finale.
+
+### 3. Boucle agentique (orchestration externe)
+
+Plusieurs appels API, avec exécution d'actions entre chaque. C'est l'orchestrateur (Claude Code) qui gère, pas le LLM.
+
+### Où ça tourne ?
+
+| Type | Où | Qui contrôle |
+|------|-----|--------------|
+| Raisonnement implicite | Serveurs (forward pass) | Les poids du modèle |
+| Extended thinking | Serveurs (génération) | Le modèle |
+| Boucle agentique | Ton ordinateur | L'orchestrateur |
+
+---
+
+## Y a-t-il des mini-LLM locaux ?
+
+Question fréquente : est-ce que Claude Code utilise des petits modèles locaux pour préparer le contexte ?
+
+**Réponse : non.**
+
+La préparation du contexte dans Claude Code, c'est du code classique :
+- Recherche de fichiers : `ripgrep`, `find`, glob patterns
+- Sélection des fichiers pertinents : heuristiques simples
+- Pas d'embeddings locaux, pas de modèle de ranking
+
+Pourquoi ?
+1. **Simplicité** : pas de dépendances GPU/ML
+2. **Cohérence** : un seul cerveau qui décide
+3. **Portabilité** : tourne partout facilement
+
+Toute l'intelligence passe par l'API. C'est un choix architectural assumé.
+
+---
+
+## Le RAG : qui décide, comment, dans quel ordre ?
+
+Le RAG (Retrieval Augmented Generation) fonctionne différemment selon l'outil.
+
+### Claude Desktop/Web (fichiers uploadés)
+
+```
+1. Tu uploades un fichier
+2. Serveur : extraction texte + chunking + embeddings
+3. Tu poses une question
+4. AVANT l'appel LLM : recherche sémantique dans les chunks
+5. Les chunks pertinents sont injectés dans le contexte
+6. Le LLM reçoit tout et répond
+```
+
+**Le LLM ne sait même pas qu'il y a eu du RAG.** Il voit juste du texte.
+
+### Claude Code (filesystem local)
+
+```
+1. Tu poses une question
+2. Le LLM reçoit la liste des tools disponibles
+3. Il génère : "Je vais chercher" + tool_call: grep(...)
+4. L'orchestrateur exécute le grep
+5. Résultat renvoyé au LLM
+6. Le LLM continue...
+```
+
+**Le LLM pilote la recherche.** Pas d'embeddings, juste des outils classiques (grep, find).
+
+### Comparaison
+
+| Aspect | Desktop/Web | Claude Code |
+|--------|-------------|-------------|
+| Qui décide de chercher ? | Orchestrateur (auto) | Le LLM (explicite) |
+| Type de recherche | Sémantique | Textuelle |
+| Le LLM sait qu'il y a recherche ? | Non | Oui |
+
+---
+
+## En résumé
+
+**Le LLM est une fonction stateless.** Texte en entrée, texte en sortie, amnésie totale.
+
+**La boucle agentique tourne côté client.** L'orchestrateur (Claude Code) envoie des requêtes, exécute les outils, reboucle.
+
+**Le modèle ne "décide" pas d'utiliser un outil.** Il génère du texte, et parfois ce texte a le format d'un appel d'outil.
+
+**Le thinking est une génération plus longue**, pas une boucle. Un seul appel API où le modèle verbalise ses étapes.
+
+**Pas de magie.** Du code d'orchestration classique autour d'un modèle très capable mais fondamentalement passif.
+
+---
+
+## Analogie finale
+
+Le LLM, c'est un expert qu'on réveille, à qui on lit tout le dossier à voix haute, qui donne son avis, et qui se rendort immédiatement avec amnésie totale.
+
+L'orchestrateur, c'est l'assistant qui tient le dossier, note les réponses, exécute les actions, et re-réveille l'expert quand il faut.
+
+---
+
+*Dans le prochain article* : on explore les Skills — comment personnaliser Claude avec des compétences sur-mesure, sans magie.
+
+---
+
+*Cet article fait partie d'une série basée sur une présentation donnée lors d'un événement sur Claude et l'IA générative.*

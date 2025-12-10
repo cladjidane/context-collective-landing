@@ -2,10 +2,11 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Calendar, User } from "lucide-react";
-import { getAllNews, getNewsBySlug, formatNewsDate } from "@/lib/mdx";
+import { getAllNews, getNewsBySlug, getSeriesArticles, formatNewsDate } from "@/lib/mdx";
 import { getEventById } from "@/lib/eventlite";
 import { MDXContent } from "@/components/ui/mdx-content";
 import { EventCardSmall } from "@/components/ui/event-card-small";
+import { SeriesNavigation } from "@/components/ui/series-navigation";
 import { BlogPostingSchema, BreadcrumbSchema } from "@/components/seo/json-ld";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://context-collective.org";
@@ -57,6 +58,11 @@ export default async function ArticlePage({ params }: PageProps) {
     linkedEvent = await getEventById(article.eventId);
   }
 
+  let seriesArticles = null;
+  if (article.series) {
+    seriesArticles = getSeriesArticles(article.series);
+  }
+
   return (
     <>
       <BlogPostingSchema
@@ -83,6 +89,14 @@ export default async function ArticlePage({ params }: PageProps) {
           Retour au blog
         </Link>
 
+        {seriesArticles && (
+          <SeriesNavigation
+            currentSlug={slug}
+            seriesTitle={article.series!}
+            articles={seriesArticles}
+          />
+        )}
+
         <header className="mb-12">
           <h1 className="text-3xl md:text-4xl lg:text-5xl mb-6">{article.title}</h1>
           <div className="flex flex-wrap gap-6 text-sm text-muted">
@@ -102,6 +116,14 @@ export default async function ArticlePage({ params }: PageProps) {
         <div className="prose prose-lg max-w-none">
           <MDXContent content={article.content} />
         </div>
+
+        {seriesArticles && (
+          <SeriesNavigation
+            currentSlug={slug}
+            seriesTitle={article.series!}
+            articles={seriesArticles}
+          />
+        )}
       </article>
     </>
   );

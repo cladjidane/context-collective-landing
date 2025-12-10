@@ -8,6 +8,8 @@ export interface NewsArticle {
   content: string;
   tags?: string[];
   eventId?: string;
+  series?: string;
+  order?: number;
 }
 
 export interface NewsArticleMeta {
@@ -18,6 +20,8 @@ export interface NewsArticleMeta {
   author: string;
   coverImage?: string;
   eventId?: string;
+  series?: string;
+  order?: number;
 }
 
 export function formatNewsDate(dateString: string): string {
