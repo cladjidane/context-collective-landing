@@ -11,7 +11,7 @@ export function NewsCard({ article }: NewsCardProps) {
   return (
     <article className="community-card group">
       <div>
-        <span className="card-tag bg-accent">Actualité</span>
+        <span className="card-tag bg-accent">Article</span>
         <h3 className="text-xl mb-2">{article.title}</h3>
         <p className="text-sm text-muted mb-4 line-clamp-3">{article.excerpt}</p>
       </div>

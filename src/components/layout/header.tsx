@@ -7,7 +7,7 @@ import { Logo } from "@/components/icons/logo";
 const navLinks = [
   { href: "#manifesto", label: "Manifeste" },
   { href: "#community", label: "Communauté" },
-  { href: "/actualites", label: "Actualités" },
+  { href: "/actualites", label: "Blog" },
   { href: "#formats", label: "Formats" },
 ];
 
@@ -31,19 +31,16 @@ export function Header() {
           aria-expanded={isMenuOpen}
         >
           <span
-            className={`block w-6 h-0.5 bg-primary transition-all duration-300 ${
-              isMenuOpen ? "rotate-45 translate-y-2" : ""
-            }`}
+            className={`block w-6 h-0.5 bg-primary transition-all duration-300 ${isMenuOpen ? "rotate-45 translate-y-2" : ""
+              }`}
           />
           <span
-            className={`block w-6 h-0.5 bg-primary transition-all duration-300 ${
-              isMenuOpen ? "opacity-0" : ""
-            }`}
+            className={`block w-6 h-0.5 bg-primary transition-all duration-300 ${isMenuOpen ? "opacity-0" : ""
+              }`}
           />
           <span
-            className={`block w-6 h-0.5 bg-primary transition-all duration-300 ${
-              isMenuOpen ? "-rotate-45 -translate-y-2" : ""
-            }`}
+            className={`block w-6 h-0.5 bg-primary transition-all duration-300 ${isMenuOpen ? "-rotate-45 -translate-y-2" : ""
+              }`}
           />
         </button>
 
@@ -68,9 +65,8 @@ export function Header() {
 
         {/* Mobile menu */}
         <div
-          className={`md:hidden fixed inset-0 top-[72px] bg-background transition-all duration-300 ${
-            isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
-          }`}
+          className={`md:hidden fixed inset-0 top-[72px] bg-background transition-all duration-300 ${isMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+            }`}
         >
           <ul className="flex flex-col items-center gap-6 pt-8 list-none">
             {navLinks.map((link) => (

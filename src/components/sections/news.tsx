@@ -40,12 +40,12 @@ export function News({ articles }: NewsProps) {
   return (
     <section ref={sectionRef} id="news" className="fade-up container-main my-16">
       <div className="flex justify-between items-end mb-8">
-        <h2 className="mt-0 border-t-0 pt-0">Actualités</h2>
+        <h2 className="mt-0 border-t-0 pt-0">Le Blog</h2>
         <Link
           href="/actualites"
           className="link-arrow inline-flex items-center gap-1"
         >
-          Voir toutes les actualités
+          Voir tous les articles
           <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
