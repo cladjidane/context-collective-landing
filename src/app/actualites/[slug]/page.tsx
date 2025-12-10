@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Calendar, User } from "lucide-react";
 import { getAllNews, getNewsBySlug, formatNewsDate } from "@/lib/mdx";
+import { getEventById } from "@/lib/eventlite";
 import { MDXContent } from "@/components/ui/mdx-content";
+import { EventCardSmall } from "@/components/ui/event-card-small";
 import { BlogPostingSchema, BreadcrumbSchema } from "@/components/seo/json-ld";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://context-collective.org";
@@ -50,6 +52,11 @@ export default async function ArticlePage({ params }: PageProps) {
     notFound();
   }
 
+  let linkedEvent = null;
+  if (article.eventId) {
+    linkedEvent = await getEventById(article.eventId);
+  }
+
   return (
     <>
       <BlogPostingSchema
@@ -63,7 +70,7 @@ export default async function ArticlePage({ params }: PageProps) {
       <BreadcrumbSchema
         items={[
           { name: "Accueil", url: BASE_URL },
-          { name: "Actualités", url: `${BASE_URL}/actualites` },
+          { name: "Blog", url: `${BASE_URL}/actualites` },
           { name: article.title, url: `${BASE_URL}/actualites/${slug}` },
         ]}
       />
@@ -73,7 +80,7 @@ export default async function ArticlePage({ params }: PageProps) {
           className="inline-flex items-center gap-2 text-muted hover:text-primary mb-8 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Retour aux actualités
+          Retour au blog
         </Link>
 
         <header className="mb-12">
@@ -89,6 +96,8 @@ export default async function ArticlePage({ params }: PageProps) {
             </span>
           </div>
         </header>
+
+        {linkedEvent && <EventCardSmall event={linkedEvent} />}
 
         <div className="prose prose-lg max-w-none">
           <MDXContent content={article.content} />

@@ -140,3 +140,23 @@ export function formatEventDate(dateString: string): string {
 export function isUpcoming(dateString: string): boolean {
   return new Date(dateString) > new Date();
 }
+
+/**
+ * Récupère un événement par son ID
+ * Note: L'API publique n'ayant pas d'endpoint ID direct documenté,
+ * on tente de le trouver dans les listes globales pour l'instant.
+ * Idéalement, il faudrait un endpoint /api/public/events/:id
+ */
+export async function getEventById(id: string): Promise<Event | null> {
+  // On cherche d'abord dans les événements futurs
+  const upcoming = await getLatestEvents(50);
+  const foundUpcoming = upcoming.find((e) => e.id === id);
+  if (foundUpcoming) return foundUpcoming;
+
+  // Sinon dans les événements passés
+  const past = await getPastEvents(50);
+  const foundPast = past.find((e) => e.id === id);
+  if (foundPast) return foundPast;
+
+  return null;
+}

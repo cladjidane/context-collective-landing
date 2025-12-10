@@ -30,6 +30,7 @@ export function getAllNews(): NewsArticleMeta[] {
         excerpt: data.excerpt || "",
         author: data.author || "Context Collective",
         coverImage: data.coverImage,
+        eventId: data.eventId,
       };
     });
 
@@ -55,6 +56,7 @@ export function getNewsBySlug(slug: string): NewsArticle | null {
       author: data.author || "Context Collective",
       coverImage: data.coverImage,
       content,
+      eventId: data.eventId,
     };
   } catch {
     return null;

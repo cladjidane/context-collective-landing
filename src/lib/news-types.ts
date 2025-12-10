@@ -7,6 +7,7 @@ export interface NewsArticle {
   coverImage?: string;
   content: string;
   tags?: string[];
+  eventId?: string;
 }
 
 export interface NewsArticleMeta {
@@ -16,6 +17,7 @@ export interface NewsArticleMeta {
   excerpt: string;
   author: string;
   coverImage?: string;
+  eventId?: string;
 }
 
 export function formatNewsDate(dateString: string): string {
