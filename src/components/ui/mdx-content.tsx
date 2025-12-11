@@ -2,6 +2,7 @@
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { PdfViewer } from "@/components/ui/pdf-viewer";
 
 interface MDXContentProps {
   content: string;
@@ -13,6 +14,8 @@ export function MDXContent({ content }: MDXContentProps) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
+          // @ts-expect-error - Custom component
+          PdfViewer: PdfViewer,
           h1: ({ children }) => (
             <h1 className="text-3xl font-extrabold mt-8 mb-4">{children}</h1>
           ),
@@ -24,7 +27,7 @@ export function MDXContent({ content }: MDXContentProps) {
           h3: ({ children }) => (
             <h3 className="text-xl font-bold mt-6 mb-3">{children}</h3>
           ),
-          p: ({ children }) => <p className="mb-4 leading-relaxed">{children}</p>,
+          p: ({ children }) => <div className="mb-4 leading-relaxed">{children}</div>,
           ul: ({ children }) => (
             <ul className="list-disc pl-6 mb-4 space-y-2">{children}</ul>
           ),
@@ -32,25 +35,36 @@ export function MDXContent({ content }: MDXContentProps) {
             <ol className="list-decimal pl-6 mb-4 space-y-2">{children}</ol>
           ),
           li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-          a: ({ href, children }) => (
-            <a
-              href={href}
-              className="text-accent hover:underline"
-              target={href?.startsWith("http") ? "_blank" : undefined}
-              rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
-            >
-              {children}
-            </a>
-          ),
+          a: ({ href, children }) => {
+            if (href?.endsWith(".pdf")) {
+              return (
+                <PdfViewer
+                  url={href}
+                  title={typeof children === "string" ? children : "Document PDF"}
+                />
+              );
+            }
+            return (
+              <a
+                href={href}
+                className="text-accent hover:underline"
+                target={href?.startsWith("http") ? "_blank" : undefined}
+                rel={href?.startsWith("http") ? "noopener noreferrer" : undefined}
+              >
+                {children}
+              </a>
+            );
+          },
           blockquote: ({ children }) => (
             <blockquote className="border-l-4 border-accent pl-4 italic my-4 text-muted bg-bg-subtle p-4 rounded-r-lg">
               {children}
             </blockquote>
           ),
-          code: ({ children, className }) => {
-            const isBlock = className?.includes("language-");
-            return isBlock ? (
-              <code className="text-sm font-mono text-gray-200">{children}</code>
+          // @ts-expect-error - inline prop is passed by react-markdown
+          code: ({ children, className, inline }) => {
+            const isInline = inline;
+            return !isInline ? (
+              <code className={`text-sm font-mono text-gray-200 ${className || ''}`}>{children}</code>
             ) : (
               <code className="bg-bg-subtle px-1.5 py-0.5 rounded text-sm font-mono text-accent-dark font-semibold">
                 {children}

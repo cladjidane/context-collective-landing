@@ -11,7 +11,14 @@ export function NewsCard({ article }: NewsCardProps) {
   return (
     <article className="community-card group">
       <div>
-        <span className="card-tag bg-accent">Article</span>
+        <div className="flex gap-2 mb-3">
+          <span className="card-tag bg-accent">Article</span>
+          {article.series && (
+            <span className="card-tag-outline border-accent text-accent">
+              {article.series} #{article.order}
+            </span>
+          )}
+        </div>
         <h3 className="text-xl mb-2">{article.title}</h3>
         <p className="text-sm text-muted mb-4 line-clamp-3">{article.excerpt}</p>
       </div>

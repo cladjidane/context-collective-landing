@@ -18,13 +18,13 @@ export function SeriesNavigation({
     const nextArticle = articles[currentIndex + 1];
 
     return (
-        <div className="my-12 rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-            <div className="mb-6 flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="my-12 rounded-xl border border-border bg-bg-subtle p-6">
+            <div className="mb-6 flex items-center justify-between border-b border-border pb-4">
                 <div>
                     <div className="text-xs font-semibold uppercase tracking-wider text-muted">
                         Série d'articles
                     </div>
-                    <h3 className="text-xl font-bold text-white">{seriesTitle}</h3>
+                    <h3 className="text-xl font-bold text-primary">{seriesTitle}</h3>
                 </div>
                 <div className="text-sm text-muted">
                     Partie <span className="text-primary font-bold">{currentIndex + 1}</span> sur{" "}
@@ -40,12 +40,12 @@ export function SeriesNavigation({
                             <div
                                 key={article.slug}
                                 className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-colors ${isCurrent
-                                    ? "bg-primary/10 text-primary"
-                                    : "text-muted hover:bg-white/5 hover:text-white"
+                                    ? "bg-primary/5 text-primary"
+                                    : "text-muted hover:bg-primary/5 hover:text-primary"
                                     }`}
                             >
                                 <span
-                                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${isCurrent ? "bg-primary text-white" : "bg-white/10"
+                                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${isCurrent ? "bg-primary text-white" : "bg-primary/10 text-primary/70"
                                         }`}
                                 >
                                     {index + 1}
@@ -62,11 +62,11 @@ export function SeriesNavigation({
                     })}
                 </div>
 
-                <div className="mt-6 flex items-center justify-between pt-4 border-t border-white/10">
+                <div className="mt-6 flex items-center justify-between pt-4 border-t border-border">
                     {previousArticle ? (
                         <Link
                             href={`/actualites/${previousArticle.slug}`}
-                            className="flex items-center gap-2 text-sm text-muted hover:text-white transition-colors"
+                            className="flex items-center gap-2 text-sm text-muted hover:text-primary transition-colors"
                         >
                             <ChevronLeft className="h-4 w-4" />
                             <span>Précédent</span>
@@ -78,7 +78,7 @@ export function SeriesNavigation({
                     {nextArticle ? (
                         <Link
                             href={`/actualites/${nextArticle.slug}`}
-                            className="flex items-center gap-2 text-sm text-muted hover:text-white transition-colors"
+                            className="flex items-center gap-2 text-sm text-muted hover:text-primary transition-colors"
                         >
                             <span>Suivant</span>
                             <ChevronRight className="h-4 w-4" />

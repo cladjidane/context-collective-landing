@@ -26,6 +26,8 @@ const links = [
   },
 ];
 
+import { subscribeToNewsletter } from "@/app/actions";
+
 export function Join() {
   const sectionRef = useRef<HTMLElement>(null);
   const [email, setEmail] = useState("");
@@ -51,10 +53,16 @@ export function Join() {
     return () => observer.disconnect();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement newsletter signup
+    const formData = new FormData();
+    formData.append("email", email);
+
+    // Optimistic UI update
     setIsSubmitted(true);
+
+    // Call server action
+    await subscribeToNewsletter(formData);
     setEmail("");
   };
 
@@ -90,19 +98,24 @@ export function Join() {
         <p className="mb-8 text-base text-secondary/70">
           Recevez nos meilleures ressources et les dates des prochains Labs.
         </p>
+
         {isSubmitted ? (
-          <p className="text-accent-light font-semibold">
+          <p className="text-accent-light font-semibold animate-fade-in">
             Merci pour votre inscription !
           </p>
         ) : (
-          <form onSubmit={handleSubmit} className="flex justify-center gap-4 flex-wrap">
+          <form onSubmit={handleSubmit} className="flex justify-center gap-4 flex-wrap relative">
+            {/* Honeypot for bots */}
+            <input type="text" name="hp" style={{ display: 'none' }} tabIndex={-1} autoComplete="off" />
+
             <input
               type="email"
+              name="email"
               placeholder="votre@email.com"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="px-4 py-3 border-none rounded-lg w-[300px] font-sans text-primary bg-white placeholder:text-muted"
+              className="px-4 py-3 border-none rounded-lg w-[300px] font-sans text-primary bg-white placeholder:text-muted focus:ring-2 focus:ring-accent outline-none transition-all"
             />
             <button
               type="submit"

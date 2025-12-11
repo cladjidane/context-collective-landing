@@ -98,6 +98,12 @@ export default async function ArticlePage({ params }: PageProps) {
         )}
 
         <header className="mb-12">
+          {article.series && (
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/5 px-3 py-1 text-sm font-medium text-accent">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              {article.series} — Partie {article.order}
+            </div>
+          )}
           <h1 className="text-3xl md:text-4xl lg:text-5xl mb-6">{article.title}</h1>
           <div className="flex flex-wrap gap-6 text-sm text-muted">
             <span className="flex items-center gap-2">
